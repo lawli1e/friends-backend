@@ -72,7 +72,7 @@ public class Test04Application {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody Users user) {
-        System.out.println("5555");
+        System.out.println("login /get");
         String query = "SELECT * FROM users WHERE username = ?";
         Users existingUser = null;
         try {
@@ -127,7 +127,7 @@ public class Test04Application {
         }
 
         String insertPostQuery = "INSERT INTO posts (user_id, title, description, max_participants, category, event_start) VALUES (?, ?, ?, ?, ?, ?)";
-        jdbcTemplate.update(insertPostQuery, userId, post.getTitle(), post.getDescription(), post.getMaxParticipants(), post.getCategory(), Timestamp.valueOf(post.getEventStart().toString()));
+        jdbcTemplate.update(insertPostQuery, userId, post.getTitle(), post.getDescription(), post.getMaxParticipants(), post.getCategory(), new Timestamp(post.getEventStart().getTime()));
 
         return ResponseEntity.status(HttpStatus.CREATED).body("Post created successfully");
     }
@@ -146,7 +146,7 @@ public class Test04Application {
         }
 
         String insertParticipantQuery = "INSERT INTO participants (post_id, user_id, joined_at) VALUES (?, ?, NOW())";
-        jdbcTemplate.update(insertParticipantQuery, participant.getPostId(), userId);
+        jdbcTemplate.update(insertParticipantQuery, participant.getPost_id(), userId);
 
         return ResponseEntity.ok().body("Participant added successfully");
     }
@@ -163,23 +163,27 @@ public class Test04Application {
 }
 
 
-    @GetMapping("/user_activities")
-    public ResponseEntity<List<Participant>> getUserActivities(HttpServletRequest request) {
-        String username = getUsernameFromToken(request);
-        if (username == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-        }
-
-        String getUserIdQuery = "SELECT user_id FROM users WHERE username = ?";
-        Integer userId = jdbcTemplate.queryForObject(getUserIdQuery, Integer.class, username);
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-
-        String query = "SELECT * FROM participants WHERE user_id = ?";
-        List<Participant> activities = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Participant.class), userId);
-        return ResponseEntity.ok().body(activities);
+@GetMapping("/user_activities")
+public ResponseEntity<List<ActivityWithPost>> getUserActivities(HttpServletRequest request) {
+    String username = getUsernameFromToken(request);
+    if (username == null) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
     }
+
+    String getUserIdQuery = "SELECT user_id FROM users WHERE username = ?";
+    Integer userId = jdbcTemplate.queryForObject(getUserIdQuery, Integer.class, username);
+    if (userId == null) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+
+    String query = "SELECT participants.participant_id, participants.post_id, participants.user_id, participants.joined_at, posts.title, posts.description " +
+                   "FROM participants " +
+                   "INNER JOIN posts ON participants.post_id = posts.post_id " +
+                   "WHERE participants.user_id = ?";
+    List<ActivityWithPost> activities = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(ActivityWithPost.class), userId);
+    return ResponseEntity.ok().body(activities);
+}
+
 
     @GetMapping("/user_posts")
     public ResponseEntity<List<Post>> getUserPosts(HttpServletRequest request) {

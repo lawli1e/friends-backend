@@ -1,6 +1,9 @@
 package com.example.test04;
 
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 
 @Entity
@@ -8,10 +11,10 @@ import java.util.Date;
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer post_id;
 
     @Column(nullable = false)
-    private Long userId;
+    private int userId;
 
     @Column(nullable = false)
     private String title;
@@ -26,21 +29,30 @@ public class Post {
     private String category;
 
     @Column(nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS", timezone = "UTC")
     private Date eventStart;
 
-    public Object getTitle() {
+    public Integer getPostId() {
+        return post_id;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public String getTitle() {
         return title;
     }
 
-    public Object getDescription() {
+    public String getDescription() {
         return description;
     }
 
-    public Object getMaxParticipants() {
+    public int getMaxParticipants() {
         return maxParticipants;
     }
 
-    public Object getCategory() {
+    public String getCategory() {
         return category;
     }
 
@@ -48,19 +60,11 @@ public class Post {
         return eventStart;
     }
 
-    public int getId() {
-        return id;
+    public void setPostId(Integer postId) {
+        this.post_id = postId;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
+    public void setUserId(int userId) {
         this.userId = userId;
     }
 

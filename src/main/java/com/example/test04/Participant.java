@@ -1,6 +1,9 @@
 package com.example.test04;
 
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 
 @Entity
@@ -8,47 +11,48 @@ import java.util.Date;
 public class Participant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long participant_id;
 
-    @Column(nullable = false)
-    private Long postId;
+    @Column(name = "post_id", nullable = false)
+    private Long post_id;
 
-    @Column(nullable = false)
-    private Long userId;
+    @Column(name = "user_id", nullable = false)
+    private Long user_id;
 
-    @Column(nullable = false)
-    private Date joinedAt;
+    @Column(name = "joined_at", nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS", timezone = "UTC")
+    private Date joined_at;
 
-    public Object[] getPostId() {
-        return new Object[0];
+    public Long getParticipant_id() {
+        return participant_id;
     }
 
-    public Long getId() {
-        return id;
+    public void setParticipant_id(Long participant_id) {
+        this.participant_id = participant_id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public Long getPost_id() {
+        return post_id;
     }
 
-    public void setPostId(Long postId) {
-        this.postId = postId;
+    public void setPost_id(Long post_id) {
+        this.post_id = post_id;
     }
 
-    public Long getUserId() {
-        return userId;
+    public Long getUser_id() {
+        return user_id;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUser_id(Long user_id) {
+        this.user_id = user_id;
     }
 
-    public Date getJoinedAt() {
-        return joinedAt;
+    public Date getJoined_at() {
+        return joined_at;
     }
 
-    public void setJoinedAt(Date joinedAt) {
-        this.joinedAt = joinedAt;
+    public void setJoined_at(Date joined_at) {
+        this.joined_at = joined_at;
     }
 
     // constructors, getters, setters, and other methods
