@@ -113,6 +113,45 @@ public class Test04Application {
 
     }
 
+    @GetMapping("/notification")
+public ResponseEntity<List<Post>> getNotifications(HttpServletRequest request) {
+    String username = getUsernameFromToken(request);
+    if (username == null) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+    }
+
+    // ดึง user_id จาก username
+    String getUserIdQuery = "SELECT user_id FROM users WHERE username = ?";
+    Integer userId;
+    try {
+        userId = jdbcTemplate.queryForObject(getUserIdQuery, Integer.class, username);
+    } catch (EmptyResultDataAccessException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+
+    // ดึงข้อมูลเหตุการณ์ที่ผู้ใช้เข้าร่วม
+    String query = "SELECT p.* FROM posts p INNER JOIN participants pa ON p.post_id = pa.post_id WHERE pa.user_id = ?";
+    List<Post> joinedEvents = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Post.class), userId);
+
+    // ตรวจสอบว่าเหตุการณ์ใดกำลังใกล้เริ่มต้นหรือไม่
+    List<Post> notifications = new ArrayList<>();
+    Date currentDate = new Date();
+    for (Post event : joinedEvents) {
+        if (event.getEventStart() != null && currentDate.before(event.getEventStart())) { // ตรวจสอบว่าเหตุการณ์ยังไม่ได้เริ่มต้น
+            long timeDifference = event.getEventStart().getTime() - currentDate.getTime();
+            long hoursDifference = timeDifference / (1000 * 60 * 60);
+            if (hoursDifference <= 24) { // ตรวจสอบว่าใกล้เริ่มต้นหรือไม่ก่อน 24 ชั่วโมง
+                notifications.add(event);
+            }
+        }
+    }
+
+    return ResponseEntity.ok().body(notifications);
+}
+
+
+
+
     @PostMapping("/create_post")
     public ResponseEntity<String> createPost(@RequestBody Post post, HttpServletRequest request) {
         String username = getUsernameFromToken(request);
